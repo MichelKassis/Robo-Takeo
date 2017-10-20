@@ -67,6 +67,7 @@ public class PlayerController : MonoBehaviour {
 		}
 	}
 
+	//input of game
 	private void HandleInput(){
 	
 		if (Input.GetKeyDown (KeyCode.RightShift)) {
