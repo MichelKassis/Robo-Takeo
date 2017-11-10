@@ -13,6 +13,28 @@ public class PlayerController : MonoBehaviour {
 	private Rigidbody2D rb2d;
 	private int count;
 	private Animator myAnimator;
+	private bool isGrounded;
+	private bool canRun;
+	private bool jump;
+	[SerializeField]
+	private bool airControl;
+
+	[SerializeField]
+	private float jumpForce;
+
+	[SerializeField]
+	private Transform[] groundPoints;
+
+	[SerializeField]
+	private float groundRadius;
+
+
+	[SerializeField]
+	private LayerMask whatIsGround;
+
+
+
+
 
 	private bool facingRight;
 
@@ -32,17 +54,16 @@ public class PlayerController : MonoBehaviour {
 
 	void FixedUpdate(){
 		float moveHorizontal = Input.GetAxis("Horizontal");
-		float moveVertical = Input.GetAxis("Vertical");
-		//bool playerAttack = Input.GetKeyUp ("Fire1");
-		Vector2 movement = new Vector2 (moveHorizontal, moveVertical);
-		rb2d.AddForce (movement * playerSpeed);
-		flip (moveHorizontal);
+		//float moveVertical = Input.GetAxis("Vertical");
+		isGrounded = isGroundedFunc();
+		canRun = isGroundedFunc ();
 
-		myAnimator.SetFloat ("playerSpeed", Mathf.Abs (moveHorizontal));
-
+		HandleMovement (moveHorizontal, 0);
 		HandleAttacks ();
 		resetValues ();
 	}
+
+
 
 
 	private void flip(float moveHorizontal){
@@ -59,6 +80,26 @@ public class PlayerController : MonoBehaviour {
 	
 	}
 
+	private void HandleMovement(float moveHorizontal, float moveVertical){
+
+			//bool playerAttack = Input.GetKeyUp ("Fire1");
+			rb2d.velocity = new Vector2 (moveHorizontal * playerSpeed, rb2d.velocity.y);
+	
+		//rb2d.AddForce (movement * playerSpeed);
+		flip (moveHorizontal);
+
+		if (isGrounded && jump){
+
+			isGrounded = false;
+
+			rb2d.AddForce (new Vector2 (0, jumpForce));
+
+		}
+
+		myAnimator.SetFloat ("playerSpeed", Mathf.Abs (moveHorizontal));
+
+	}
+
 	private void HandleAttacks(){
 
 		if (playerStrike) {
@@ -70,9 +111,14 @@ public class PlayerController : MonoBehaviour {
 	//input of game
 	private void HandleInput(){
 	
-		if (Input.GetKeyDown (KeyCode.RightShift)) {
+		if (Input.GetKeyDown (KeyCode.LeftShift)) {
 		
 			playerStrike = true;
+		}
+
+		if (Input.GetKeyDown (KeyCode.Space)) {
+		
+			jump = true;
 		}
 	}
 
@@ -99,6 +145,32 @@ public class PlayerController : MonoBehaviour {
 
 	private void resetValues(){
 		playerStrike = false;
+		jump = false;
+	
+	}
+
+	private bool isGroundedFunc(){
+		if (rb2d.velocity.y <= 0)
+		{
+		
+			foreach (Transform point in groundPoints) 
+			{
+			
+				Collider2D[] colliders = Physics2D.OverlapCircleAll (point.position, groundRadius, whatIsGround);
+
+				for (int i = 0; i < colliders.Length; i++) 
+				{
+				
+					if (colliders [i].gameObject != gameObject) 
+					{
+					
+						return true;
+					}
+				}
+			}
+		
+		}
+		return false;
 	
 	}
 
